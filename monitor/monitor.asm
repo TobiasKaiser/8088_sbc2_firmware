@@ -1,36 +1,48 @@
 bits 16
 
-org 0xfe000
+org 0xf0000
 
 	mov al,0xaa
 	out 0x0,al
-	jmp short 0x2c
+	jmp main
+
+sub1:
 	pushfw
 	push ax
 	push cx
+loop5:
 	mov cx,0x64
+loop6:
 	dec cx
-	jnz 0xc
+	jnz loop6
 	dec ax
-	jnz 0x9
+	jnz loop5
 	pop cx
 	pop ax
 	popfw
 	ret
+
+sub2:
 	pushfw
 	push ax
+loop4:
 	in al,0x25
 	and al,0x20
-	jz 0x18
+	jz loop4
 	pop ax
 	out 0x20,al
 	popfw
 	ret
+
+sub3:
+loop3:
 	in al,0x25
 	and al,0x1
-	jz 0x23
+	jz loop3
 	in al,0x20
 	ret
+
+main:
 	mov ax,0xf000
 	mov cs,ax
 	mov al,0x1
@@ -43,9 +55,10 @@ org 0xfe000
 	mov sp,0xffff
 	mov al,0x3
 	out 0x0,al
+loop2:
 	in al,0x25
 	and al,0x40
-	jz 0x47
+	jz loop2
 	mov al,0x4
 	out 0x0,al
 	mov al,0x7
@@ -66,36 +79,40 @@ org 0xfe000
 	mov al,0x6
 	out 0x0,al
 	mov al,0x48
-	call word 0x16
+	call sub2
 	mov al,0x7
 	out 0x0,al
 	mov al,0x69
-	call word 0x16
+	call sub2
 	mov al,0x8
 	out 0x0,al
-	call word 0x23
-	call word 0x16
+loop1:
+	call sub3
+	call sub2
 	cmp al,0x0
-	jz 0x9a
+	jz else2
 	mov [es:di],al
 	out 0x0,al
 	inc di
-	jmp short 0x88
-	call word 0x23
+	jmp loop1
+
+else2:
+	call sub3
 	cmp al,0x0
-	jz 0xa9
+	jz else
 	mov sp,0xffff
-	jmp word 0x6000:0x0
+	jmp 0x6000:0x0000
+
+else:
 	mov al,0x0
 	mov [es:di],al
 	inc di
 	out 0x0,al
-	jmp short 0x88
+	jmp loop1
+
 
 times 0x1ff0-($-$$) db 0 
 
-	mov AL, 0xAA
-	out 0, AL
-loophere: jmp loophere
+	jmp 0xf000:0x0000
 
 times 0x2000-($-$$) db 0 
